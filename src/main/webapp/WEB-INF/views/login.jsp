@@ -40,7 +40,7 @@
 				<font color="red">${errorMessage}</font>
 			</p>
 			Name: <input type="text" name="name" /> <br>
-			<br>Password:<input type="password" name="password" /><br><br> <input
+			<br>Password: <input type="password" name="password" /><br><br> <input
 				type="submit" value="Login" /> <center>
 		</form>
 
