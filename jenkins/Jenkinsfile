@@ -1,30 +1,154 @@
 pipeline {
-    agent {
-        docker {
-            image 'maven:3.9.0'
-            args '-v /root/.m2:/root/.m2'
-        }
+    agent any
+
+    environment {
+        backup_dir = '/backup'
+        webapp_dir = '/opt/tomcat/webapps'
+        war_file_path = "$webapp_dir/*.war"
+        jenkins_dir = '/var/lib/jenkins/workspace/MavenPipelineDemo/'
+        mavenHome = tool 'jenkins-maven'
+        github_repo_url = 'https://github.com/GauravXs/MavenWebApp.git'
+        sonarqube_ip = '100.94.222.20'
+        sonarqube_port = '9000'
+        sonar_host_url = 'http://$sonarqube_ip:$sonarqube_port'
+        sonar_login_token = 'sqp_a3aa6db600e70fb06f6afe06c9de7b41bfe03c6b'
+        sonar_project_key = 'MavenPipeLineDemo'
     }
+
     stages {
-        stage('Build') {
+    
+    stage('Pre-Condition Check') {
             steps {
-                sh 'mvn -B -DskipTests clean package'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
+                script {
+                    // Check GitHub repository availability
+                    sh """
+                        echo "Checking GitHub repository availability..."
+                        git ls-remote --exit-code $github_repo_url || (echo "GitHub repository is not reachable, exiting." && exit 1)
+                        echo "GitHub repository is reachable. Proceeding with the pipeline."
+                    """
+                    // Check SonarQube availability
+                    sh """
+                        echo "Checking SonarQube availability..."
+                        nc -zv -w5 $sonarqube_ip 9000 || (echo "SonarQube is not reachable on $sonar_host_url, exiting." && exit 1)
+                        echo "SonarQube is reachable. Proceeding with the pipeline."
+                    """
                 }
             }
         }
-        stage('Deliver') {
+
+        stage('Clean Workspace') {
             steps {
-                sh './jenkins/scripts/deliver.sh'
+                script {
+                    sh "rm -rf $jenkins_dir/*"
+                }
+            }
+        }
+        stage('Git Pull') {
+            steps {
+                script {
+                    sh 'echo "Pulling from Github Repo"'
+                    checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: "$github_repo_url"]]])
+                }
+            }
+        }
+        
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    sh """
+                        echo "Running SonarQube analysis..."
+                        cd $jenkins_dir
+                        ${mavenHome}/bin/mvn clean verify sonar:sonar \
+                            -Dsonar.projectKey=$sonar_project_key \
+                            -Dsonar.host.url=$sonar_host_url \
+                            -Dsonar.login=$sonar_login_token
+                    """
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    def mavenHome = tool 'jenkins-maven'
+
+                    sh """
+                echo "Building Maven project..."
+                cd $jenkins_dir
+                ${mavenHome}/bin/mvn clean install
+            """
+                }
+            }
+        }
+
+        stage('Stopping Tomcat') {
+            steps {
+                script {
+                    sh 'echo "Checking Tomcat Status..."'
+                    sh '''if sudo systemctl is-active --quiet tomcat; then
+                            echo "Tomcat is running. Stopping..."
+                            sudo systemctl stop tomcat
+                        else
+                            echo "Tomcat is not running."
+                        fi'''
+                }
+            }
+        }
+
+        stage('Backup') {
+            steps {
+                script {
+                    sh """
+                echo "Content of target dir -> "
+                ls -lah $jenkins_dir/target/
+
+                if ls $war_file_path 1> /dev/null 2>&1; then
+
+                    initial_file=\$(basename $war_file_path)
+                    backup_WAR_filename="$backup_dir/\$(basename -s .war \$initial_file)_WAR_BK_\$(date +%Y-%m-%d_%H-%M-%S).war"
+
+                    echo "Backing up \$initial_file to \$backup_WAR_filename"
+                    cp "\$webapp_dir/\$initial_file" "\$backup_WAR_filename"
+
+                    echo "Backing up \$initial_file folder to \$backup_Zip_filename as an archieve"
+                    zip -vr "$backup_dir/\$(basename -s .war \$initial_file)_ZIP_BK_\$(date +%Y-%m-%d_%H-%M-%S).zip" -j "$webapp_dir/\$(basename -s .war \$initial_file)"/*
+                    echo "Removing existing WAR file(s)..."
+                    for war_file_path in \$webapp_dir/*.war; do
+                        rm "\$war_file_path"
+                    done
+                else
+                    echo "No existing Tomcat WAR file found in \$webapp_dir"
+                fi
+            """
+                }
+            }
+        }
+
+        stage('Deployment') {
+            steps {
+                script {
+                    sh '''
+                        echo "Copying new WAR file to Tomcat..."
+                        cp $jenkins_dir/target/*.war $webapp_dir/
+                        sudo chown -R tomcat:tomcat $webapp_dir
+
+                        echo "Removing Jenkins WAR File..."
+                        rm $jenkins_dir/target/*.war
+                    '''
+                }
+            }
+        }
+
+        stage('Restart Tomcat') {
+            steps {
+                script {
+                    sh '''
+                    echo "Starting Tomcat Server..."
+                    sudo systemctl daemon-reload && sudo systemctl start tomcat.service
+                    echo "Deployment completed successfully."
+                        '''
+                }
             }
         }
     }
-}
+}   
