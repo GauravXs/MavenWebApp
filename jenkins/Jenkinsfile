@@ -17,7 +17,6 @@ pipeline {
     }*/
 
     tools {
-        mavenHome = tool 'jenkins-maven'
         maven 'jenkins-maven'
     }
 
