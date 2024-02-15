@@ -24,7 +24,7 @@ pipeline {
 
         stage('Build Maven') {
             steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: "$github_repo_url"]]])
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: "https://github.com/GauravXs/MavenWebApp.git"]]])
                 sh '''
                 echo "Pulling from Github Repo"
                 cd $jenkins_dir
