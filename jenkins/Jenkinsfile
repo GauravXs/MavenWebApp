@@ -17,6 +17,7 @@ pipeline {
     }*/
 
     tools {
+        mavenHome = tool 'jenkins-maven'
         maven 'jenkins-maven'
     }
 
@@ -24,6 +25,7 @@ pipeline {
 
         stage('Build Maven') {
             steps {
+                def mavenHome = tool 'jenkins-maven'
                 checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: "https://github.com/GauravXs/MavenWebApp.git"]]])
                 sh '''
                 echo "Pulling from Github Repo"
