@@ -26,13 +26,16 @@ pipeline {
         stage('Build Maven') {
             steps {
                 checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: "https://github.com/GauravXs/MavenWebApp.git"]]])
-                sh '''
-                echo "Pulling from Github Repo"
+
+                script {
+                    def mavenHome = tool 'jenkins-maven'
+
+                    sh """
+                echo "Building Maven project..."
                 cd $jenkins_dir
                 ${mavenHome}/bin/mvn clean install
-                #mvn -Dmaven.test.failure.ignore=true clean package
-                
-                '''
+            """
+                }
                 }
             }
 
