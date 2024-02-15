@@ -26,7 +26,10 @@ pipeline {
                 checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: "$github_repo_url"]]])
                 sh '''
                 echo "Pulling from Github Repo"
-                mvn -Dmaven.test.failure.ignore=true clean package
+                cd $jenkins_dir
+                ${mavenHome}/bin/mvn clean install
+                //mvn -Dmaven.test.failure.ignore=true clean package
+                
                 '''
                 }
             }
