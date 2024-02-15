@@ -8,11 +8,21 @@ pipeline {
         jenkins_dir = '/var/lib/jenkins/workspace/MavenPipelineDemo/'
         mavenHome = tool 'jenkins-maven'
         github_repo_url = 'https://github.com/GauravXs/MavenWebApp.git'
+
+        //Variables for Sonarqube Server
         sonarqube_ip = '100.94.222.20'
         sonarqube_port = '9000'
         sonar_host_url = 'http://$sonarqube_ip:$sonarqube_port'
         sonar_login_token = 'sqp_a3aa6db600e70fb06f6afe06c9de7b41bfe03c6b'
         sonar_project_key = 'MavenPipeLineDemo'
+
+        //Variables for Nexus Server
+        NEXUS_VERSION = "nexus3"
+        NEXUS_PROTOCOL = "http"
+        NEXUS_URL = "100.94.222.20:8081"
+        NEXUS_REPOSITORY = "in28Minutes-first-webapp"
+        NEXUS_CREDENTIAL_ID = "nexusadmincred"
+        ARTIFACT_VERSION = "${BUILD_NUMBER}"
     }
 
     stages {
@@ -142,13 +152,48 @@ pipeline {
         stage('Restart Tomcat') {
             steps {
                 script {
-                    sh '''echo "Starting Tomcat Server..."
-                        sudo systemctl daemon-reload && sudo systemctl restart tomcat.service
-
-                        echo "Deployment completed successfully."
+                    sh '''
+                    echo "Starting Tomcat Server..."
+                    sudo systemctl daemon-reload && sudo systemctl start tomcat.service
+                    echo "Deployment completed successfully."
                         '''
                 }
             }
         }
+
+        stage("publish to nexus") {
+            steps {
+                script {
+                    pom = readMavenPom file: "pom.xml";
+                    filesByGlob = findFiles(glob: "target/*.${pom.packaging}");
+                    echo "${filesByGlob[0].name} ${filesByGlob[0].path} ${filesByGlob[0].directory} ${filesByGlob[0].length} ${filesByGlob[0].lastModified}"
+                    artifactPath = filesByGlob[0].path;
+                    artifactExists = fileExists artifactPath;
+
+                    if(artifactExists) {
+                        echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}";
+
+                        nexusArtifactUploader(
+                            nexusVersion: NEXUS_VERSION,
+                            protocol: NEXUS_PROTOCOL,
+                            nexusUrl: NEXUS_URL,
+                            groupId: pom.groupId,
+                            version: ARTIFACT_VERSION,
+                            repository: NEXUS_REPOSITORY,
+                            credentialsId: NEXUS_CREDENTIAL_ID,
+                            artifacts: [
+                                [artifactId: pom.artifactId,
+                                classifier: '',
+                                file: artifactPath,
+                                type: pom.packaging]
+                            ]
+                        );
+
+                    } else {
+                        error "*** File: ${artifactPath}, could not be found";
+                    }
+                }
+            }
+        }
     }
-}
+}   
