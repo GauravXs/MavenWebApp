@@ -28,7 +28,7 @@ pipeline {
                 echo "Pulling from Github Repo"
                 cd $jenkins_dir
                 ${mavenHome}/bin/mvn clean install
-                //mvn -Dmaven.test.failure.ignore=true clean package
+                #mvn -Dmaven.test.failure.ignore=true clean package
                 
                 '''
                 }
