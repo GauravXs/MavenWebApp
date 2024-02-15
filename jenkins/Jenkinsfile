@@ -45,19 +45,19 @@ pipeline {
                     if(artifactExists) {
                         echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}";
                         nexusArtifactUploader(
-                            nexusVersion: nexus3,
-                            protocol: http,
-                            nexusUrl: 100.94.222.20:8081,
-                            groupId: pom.com.in28minutes,
-                            version: pom.0.0.1-SNAPSHOT,
-                            repository: in28Minutes-first-webapp,
-                            credentialsId: NEXUS_CRED,
+                            nexusVersion: 'nexus3',
+                            protocol: 'http',
+                            nexusUrl: '100.94.222.20:8081',
+                            groupId: 'pom.com.in28minutes',
+                            version: 'pom.0.0.1-SNAPSHOT',
+                            repository: 'in28Minutes-first-webapp',
+                            credentialsId: 'NEXUS_CRED',
                             artifacts: [
-                                [artifactId: pom.in28Minutes-first-webapp,
+                                [artifactId: 'pom.in28Minutes-first-webapp',
                                 classifier: '',
                                 file: artifactPath,
                                 type: pom.packaging],
-                                [artifactId: pom.in28Minutes-first-webapp,
+                                [artifactId: 'pom.in28Minutes-first-webapp',
                                 classifier: '',
                                 file: "pom.xml",
                                 type: "pom"]
