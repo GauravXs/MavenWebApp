@@ -1,81 +1,95 @@
 pipeline {
     agent any
 
-    /*
-    environment {
-        backup_dir = '/backup'
-        webapp_dir = '/opt/tomcat/webapps'
-        war_file_path = "$webapp_dir/*.war"
-        jenkins_dir = '/var/lib/jenkins/workspace/MavenPipelineDemo/'
-        mavenHome = tool 'jenkins-maven'
-        github_repo_url = 'https://github.com/GauravXs/MavenWebApp.git'
-        sonarqube_ip = '100.94.222.20'
-        sonarqube_port = '9000'
-        sonar_host_url = 'http://$sonarqube_ip:$sonarqube_port'
-        sonar_login_token = 'sqp_a3aa6db600e70fb06f6afe06c9de7b41bfe03c6b'
-        sonar_project_key = 'MavenPipeLineDemo'
-    }*/
-
     environment {
         jenkins_dir = '/var/lib/jenkins/workspace/MavenPipelineDemo/'
+        // This can be nexus3 or nexus2
+        NEXUS_VERSION = "nexus3"
+        // This can be http or https
+        NEXUS_PROTOCOL = "http"
+        // Where your Nexus is running
+        NEXUS_URL = "100.94.222.20:8081"
+        // Repository where we will upload the artifact
+        NEXUS_REPOSITORY = "in28Minutes-first-webapp"
+        // Jenkins credential id to authenticate to Nexus OSS
+        NEXUS_CREDENTIAL_ID = "nexusadmincred"
+        ARTIFACT_VERSION = "${BUILD_NUMBER}"
     }
 
     tools {
         maven 'jenkins-maven'
+        jdk "Java8"
     }
 
     stages {
-
-        stage('Build Maven') {
+        stage("Check out") {
             steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: "https://github.com/GauravXs/MavenWebApp.git"]]])
-
                 script {
-                    def mavenHome = tool 'jenkins-maven'
-
-                    sh """
-                echo "Building Maven project..."
-                cd $jenkins_dir
-                ${mavenHome}/bin/mvn clean install
-            """
-                }
+                    git branch: 'feature/nexusUpload', url: 'https://github.com/ranjit4github/LoginWebApp.git';
                 }
             }
+        }
 
-        stage("Publish to Nexus Repository Manager") {
+        stage("mvn build") {
             steps {
                 script {
+                    sh "mvn clean package"
+                }
+            }
+        }
+
+        stage("publish to nexus") {
+            steps {
+                script {
+                    // Read POM xml file using 'readMavenPom' step , this step 'readMavenPom' is included in: https://plugins.jenkins.io/pipeline-utility-steps
                     pom = readMavenPom file: "pom.xml";
+                    // Find built artifact under target folder
                     filesByGlob = findFiles(glob: "target/*.${pom.packaging}");
+                    // Print some info from the artifact found
                     echo "${filesByGlob[0].name} ${filesByGlob[0].path} ${filesByGlob[0].directory} ${filesByGlob[0].length} ${filesByGlob[0].lastModified}"
+                    // Extract the path from the File found
                     artifactPath = filesByGlob[0].path;
+                    // Assign to a boolean response verifying If the artifact name exists
                     artifactExists = fileExists artifactPath;
+
                     if(artifactExists) {
                         echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}";
+
                         nexusArtifactUploader(
-                            nexusVersion: 'nexus3',
-                            protocol: 'http',
-                            nexusUrl: '100.94.222.20:8081',
-                            groupId: 'pom.com.in28minutes',
-                            version: 'pom.0.0.1-SNAPSHOT',
-                            repository: 'in28Minutes-first-webapp',
-                            credentialsId: 'NEXUS_CRED',
+                            nexusVersion: NEXUS_VERSION,
+                            protocol: NEXUS_PROTOCOL,
+                            nexusUrl: NEXUS_URL,
+                            groupId: pom.groupId,
+                            version: ARTIFACT_VERSION,
+                            repository: NEXUS_REPOSITORY,
+                            credentialsId: NEXUS_CREDENTIAL_ID,
                             artifacts: [
-                                [artifactId: 'pom.in28Minutes-first-webapp',
+                                // Artifact generated such as .jar, .ear and .war files.
+                                [artifactId: pom.artifactId,
                                 classifier: '',
                                 file: artifactPath,
-                                type: pom.packaging],
-                                [artifactId: 'pom.in28Minutes-first-webapp',
-                                classifier: '',
-                                file: "pom.xml",
-                                type: "pom"]
+                                type: pom.packaging]
                             ]
                         );
+
                     } else {
                         error "*** File: ${artifactPath}, could not be found";
                     }
                 }
             }
         }
-        }
-}   
+        // stage ('Execute Ansible Play - CD'){
+        //     agent {
+        //         label 'ansible'
+        //     }
+        //     steps{
+        //         script {
+        //             git branch: 'feature/ansibleNexus', url: 'https://github.com/ranjit4github/Ansible_Demo_Project.git';
+        //         }
+        //         sh '''
+        //             ansible-playbook -e vers=${BUILD_NUMBER} roles/site.yml
+        //         '''
+        //     }
+        // }
+    }
+}
