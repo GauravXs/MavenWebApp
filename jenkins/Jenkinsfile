@@ -1,6 +1,7 @@
 pipeline {
     agent any
 
+    /*
     environment {
         backup_dir = '/backup'
         webapp_dir = '/opt/tomcat/webapps'
@@ -13,7 +14,7 @@ pipeline {
         sonar_host_url = 'http://$sonarqube_ip:$sonarqube_port'
         sonar_login_token = 'sqp_a3aa6db600e70fb06f6afe06c9de7b41bfe03c6b'
         sonar_project_key = 'MavenPipeLineDemo'
-    }
+    }*/
 
     tools {
         maven 'jenkins-maven'
