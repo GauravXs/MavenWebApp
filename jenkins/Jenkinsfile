@@ -16,6 +16,10 @@ pipeline {
         sonar_project_key = 'MavenPipeLineDemo'
     }*/
 
+    environment {
+        jenkins_dir = '/var/lib/jenkins/workspace/MavenPipelineDemo/'
+    }
+
     tools {
         maven 'jenkins-maven'
     }
