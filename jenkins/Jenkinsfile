@@ -25,7 +25,7 @@ pipeline {
             steps {
                 checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: "$github_repo_url"]]])
                 sh '''
-                echo "Pulling from Github Repo"'
+                echo "Pulling from Github Repo"
                 mvn -Dmaven.test.failure.ignore=true clean package
                 '''
                 }
