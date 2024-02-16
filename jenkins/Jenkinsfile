@@ -234,8 +234,8 @@ pipeline {
                 }
             }
         }
+        // stage('Email Notifications') {
 
-        // stage ('Quality Gate Status Check') {
-
+    // }
     }
 }
