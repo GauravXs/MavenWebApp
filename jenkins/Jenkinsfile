@@ -1,11 +1,18 @@
 pipeline {
     agent any
 
+    // tools {
+    //     maven "jenkins-maven"
+    //     jdk "Java8"
+    // }
+
     environment {
+        project_name = 'MavenPipelineDemo'
         backup_dir = '/backup'
         webapp_dir = '/opt/tomcat/webapps'
         war_file_path = "$webapp_dir/*.war"
         jenkins_dir = '/var/lib/jenkins/workspace/MavenPipelineDemo/'
+        new_war_file = ' '
         mavenHome = tool 'jenkins-maven'
         github_repo_url = 'https://github.com/GauravXs/MavenWebApp.git'
 
@@ -17,17 +24,18 @@ pipeline {
         sonar_project_key = 'MavenPipeLineDemo'
 
         //Variables for Nexus Server
-        NEXUS_VERSION = "nexus3"
-        NEXUS_PROTOCOL = "http"
-        NEXUS_URL = "100.94.222.20:8081"
-        NEXUS_REPOSITORY = "in28Minutes-first-webapp"
-        NEXUS_CREDENTIAL_ID = "nexusadmincred"
-        ARTIFACT_VERSION = "${BUILD_NUMBER}"
+        NEXUS_VERSION = 'nexus3'
+        NEXUS_PROTOCOL = 'http'
+        NEXUS_IP = '100.94.222.20'
+        NEXUS_PORT = '8081'
+        NEXUS_URL = '100.94.222.20:8081'
+        NEXUS_REPOSITORY = 'in28Minutes-first-webapp'
+        NEXUS_CREDENTIAL_ID = 'nexusadmincred'
+        ARTIFACT_VERSION = '${BUILD_NUMBER}'
     }
 
     stages {
-    
-    stage('Pre-Condition Check') {
+        stage('Pre-Condition Check') {
             steps {
                 script {
                     // Check GitHub repository availability
@@ -36,11 +44,17 @@ pipeline {
                         git ls-remote --exit-code $github_repo_url || (echo "GitHub repository is not reachable, exiting." && exit 1)
                         echo "GitHub repository is reachable. Proceeding with the pipeline."
                     """
-                    // Check SonarQube availability
+                    // Check SonarQube Server availability
                     sh """
                         echo "Checking SonarQube availability..."
-                        nc -zv -w5 $sonarqube_ip 9000 || (echo "SonarQube is not reachable on $sonar_host_url, exiting." && exit 1)
-                        echo "SonarQube is reachable. Proceeding with the pipeline."
+                        nc -zv -w5 $sonarqube_ip $sonarqube_port || (echo "SonarQube is not reachable on $sonar_host_url, exiting." && exit 1)
+                        echo "SonarQube Server is reachable. Continuing with Test"
+                    """
+                    // Check Nexus Repo Server availability
+                    sh """
+                        echo "Checking SonarQube availability..."
+                        nc -zv -w5 $NEXUS_IP $NEXUS_PORT || (echo "Nexus Repo Server is not reachable on $NEXUS_URL, exiting." && exit 1)
+                        echo "Nexus Repo Server is reachable. Proceeding with the pipeline."
                     """
                 }
             }
@@ -53,6 +67,7 @@ pipeline {
                 }
             }
         }
+
         stage('Git Pull') {
             steps {
                 script {
@@ -61,7 +76,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('SonarQube Analysis') {
             steps {
                 script {
@@ -86,6 +101,8 @@ pipeline {
                 echo "Building Maven project..."
                 cd $jenkins_dir
                 ${mavenHome}/bin/mvn clean install
+                new_war_file=\$(basename $jenkins_dir/target/*.war)
+                echo "$new_war_file"
             """
                 }
             }
@@ -112,20 +129,23 @@ pipeline {
                 echo "Content of target dir -> "
                 ls -lah $jenkins_dir/target/
 
-                if ls $war_file_path 1> /dev/null 2>&1; then
+                if ls $war_file_path 1> /dev/null 2>&1; then #prevents pipeline from crashing on an initial run when there isn't any war file in tomcat root dir
+                    if [ -n "\$new_war_file"]; then 
+                        initial_file=\$(basename $war_file_path)
+                        backup_WAR_filename="$backup_dir/\$(basename -s .war \$initial_file)_WAR_BK_\$(date +%Y-%m-%d_%H-%M-%S).war"
 
-                    initial_file=\$(basename $war_file_path)
-                    backup_WAR_filename="$backup_dir/\$(basename -s .war \$initial_file)_WAR_BK_\$(date +%Y-%m-%d_%H-%M-%S).war"
+                        echo "Backing up \$initial_file to \$backup_WAR_filename"
+                        cp "\$webapp_dir/\$initial_file" "\$backup_WAR_filename"
 
-                    echo "Backing up \$initial_file to \$backup_WAR_filename"
-                    cp "\$webapp_dir/\$initial_file" "\$backup_WAR_filename"
-
-                    echo "Backing up \$initial_file folder to \$backup_Zip_filename as an archieve"
-                    zip -vr "$backup_dir/\$(basename -s .war \$initial_file)_ZIP_BK_\$(date +%Y-%m-%d_%H-%M-%S).zip" -j "$webapp_dir/\$(basename -s .war \$initial_file)"/*
-                    echo "Removing existing WAR file(s)..."
-                    for war_file_path in \$webapp_dir/*.war; do
+                        echo "Backing up \$initial_file folder to \$backup_Zip_filename as an archieve"
+                        zip -vr "$backup_dir/\$(basename -s .war \$initial_file)_ZIP_BK_\$(date +%Y-%m-%d_%H-%M-%S).zip" -j "$webapp_dir/\$(basename -s .war \$initial_file)"/*
+                        echo "Removing existing WAR file(s)..."
+                        for war_file_path in \$webapp_dir/*.war; do
                         rm "\$war_file_path"
-                    done
+                        done
+                    else 
+                        echo "No new WAR file Generated. Skipping Backup"
+                    fi
                 else
                     echo "No existing Tomcat WAR file found in \$webapp_dir"
                 fi
@@ -139,11 +159,8 @@ pipeline {
                 script {
                     sh '''
                         echo "Copying new WAR file to Tomcat..."
-                        cp $jenkins_dir/target/*.war $webapp_dir/
+                        sudo cp $jenkins_dir/target/*.war $webapp_dir/
                         sudo chown -R tomcat:tomcat $webapp_dir
-
-                        echo "Removing Jenkins WAR File..."
-                        rm $jenkins_dir/target/*.war
                     '''
                 }
             }
@@ -161,10 +178,10 @@ pipeline {
             }
         }
 
-        stage("publish to nexus") {
+        stage('Publish to Nexus') {
             steps {
                 script {
-                    pom = readMavenPom file: "pom.xml";
+                    pom = readMavenPom file: 'pom.xml';
                     filesByGlob = findFiles(glob: "target/*.${pom.packaging}");
                     echo "${filesByGlob[0].name} ${filesByGlob[0].path} ${filesByGlob[0].directory} ${filesByGlob[0].length} ${filesByGlob[0].lastModified}"
                     artifactPath = filesByGlob[0].path;
