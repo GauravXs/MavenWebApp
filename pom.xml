@@ -7,6 +7,12 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>war</packaging>
 
+	<properties>
+    		<maven.compiler.source>1.8</maven.compiler.source>
+    		<maven.compiler.target>1.8</maven.compiler.target>
+	</properties>
+
+
 	<dependencies>
 		<dependency>
 			<groupId>javax</groupId>
@@ -41,8 +47,8 @@
 					<version>3.12.1</version>
 					<configuration>
 						<verbose>true</verbose>
-						<source>8</source>
-						<target>8</target>
+						<source>${maven.compiler.source}</source>
+                				<target>${maven.compiler.target}</target>
 						<showWarnings>true</showWarnings>
 					</configuration>
 				</plugin>
