@@ -334,7 +334,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                 }
             }
 
-            stage('Restart Tomcat') {
+            stage('Start Tomcat') {
                 steps {
                     script {
                         sh '''
