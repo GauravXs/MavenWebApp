@@ -7,10 +7,10 @@ def javaVer = ['Java8', 'Java11', 'Java17']
 
         tools {
             maven 'jenkins-maven'
-        //jdk 'Java11'//, version: '11.0.22'
-        //jdk 'Java17'//, version: '17.0.10'
-        //jdk 'Java8'//, version: '8u392-ga-1'
-        //jdk 'Java21'//, version: '21.0.2'
+            //jdk 'Java11'//, version: '11.0.22'
+            //jdk 'Java17'//, version: '17.0.10'
+            //jdk 'Java8'//, version: '8u392-ga-1'
+            //jdk 'Java21'//, version: '21.0.2'
         }
 
         environment {
@@ -126,34 +126,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                 }
             }
 
-            /*stage('Build') {
-            steps {
-                script {
-                    echo 'Building Maven project...'
-
-                    for (def javaVersion in javaVer) {
-                        sh "mkdir ${JENKINS_HOME}/workspace/${JOB_NAME}/${javaVersion}"
-                        sh "ls -lah ${JENKINS_HOME}/workspace/${JOB_NAME}/"
-
-                        withEnv(["JAVA_HOME=${tool '$javaVersion'}"]) {
-                            def versionNumber = javaVersion.replaceAll('[^0-9]', '')
-                            echo "Java version number: $versionNumber"
-                            echo "Built-in Java Version: $javaVersion"
-                            echo ''
-
-                            sh "mvn clean install -f pom.xml -Dmaven.compiler.source=${versionNumber} -Dmaven.compiler.target=${versionNumber}"
-                            sh 'unzip -c "${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war" META-INF/MANIFEST.MF'
-
-                            sh "cp ${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war ${JENKINS_HOME}/workspace/${JOB_NAME}/${javaVersion}/\$(basename -s .war ${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war)_${javaVersion}.war"
-                            sleep 2
-                            echo '-----------------------------------------------------------------------------------------------------------'
-                        }
-                    }
-                }
-            }
-            }*/
-
-            /*stage('Build') {
+            stage('Build') {
                 steps {
                     script {
                         echo 'Building Maven project...'
@@ -177,39 +150,6 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                         }
                     }
                 }
-            }*/
-
-            stage('Build') {
-            steps {
-                script {
-                    echo 'Building Maven project...'
-                    for (def javaVersion in javaVer) {
-                        def versionNumber = javaVersion.replaceAll('[^0-9]', '')
-                        echo "Java version number: $versionNumber"
-                        echo "Built-in Java Version: $javaVersion"
-                        echo ''
-
-                        sh "mkdir ${JENKINS_HOME}/workspace/${JOB_NAME}/${javaVersion}"
-
-                        // Define the tool dynamically within the loop
-                        def selectedJDKPath = tool name: javaVersion, type: 'jdk'
-                        echo selectedJDKPath
-
-                        // Use the selected tool for Maven build
-                        sh "mvn clean install -f pom.xml -Dmaven.compiler.source=${versionNumber} -Dmaven.compiler.target=${versionNumber}"
-
-                        // Extract the JDK version from the pom.xml file
-                        def buildJdkSpec = sh(script: 'xmlstarlet sel -N ns=http://maven.apache.org/POM/4.0.0 -t -v "//ns:properties/ns:maven.compiler.source" pom.xml', returnStdout: true).trim()
-                        echo "Build-Jdk-Spec: ${buildJdkSpec}"
-
-                        // Continue with the rest of your script...
-                        sh 'unzip -c "${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war" META-INF/MANIFEST.MF | grep Build-Jdk-Spec:'
-                        sh "cp ${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war ${JENKINS_HOME}/workspace/${JOB_NAME}/${javaVersion}/\$(basename -s .war ${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war)_${javaVersion}.war"
-                        sleep 2
-                        echo '-----------------------------------------------------------------------------------------------------------'
-                    }
-                }
-            }
             }
 
             stage('Publish to Nexus') {
