@@ -51,8 +51,8 @@ def javaVer = ['Java8', 'Java11', 'Java17']
             //DEFAULT_CONTENT = 'Default Content'
             DEFAULT_REPLYTO = 'Gourav.singh@mobicule.com'
 
-            useSonar = 'true'
-            useNexus = 'true'
+            useSonar = 'false'
+            useNexus = 'false'
             javaDeploy = 'Java17'
         }
 
@@ -263,7 +263,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                 }
             }
 
-            stage('Stopping Tomcat') {
+            /*stage('Stopping Tomcat') {
                 steps {
                     script {
                         sh 'echo "Checking Tomcat Status..."'
@@ -399,7 +399,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
             }*/
         }
 
-        post {
+        /*post {
             always {
                 script {
                     if (currentBuild.currentResult == 'FAILURE') {
@@ -439,7 +439,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                             ],
                             replyTo: "${DEFAULT_REPLYTO}",
                             to: "${RECIPIENTS_NAME}"
-                    //////////////////*/
+                    //////////////////
                     } else {
                         //sh 'echo "Build result has changed to UNKNOWN"'
                         emailext subject: "Unknown Build ${BUILD_NUMBER}",
@@ -455,5 +455,5 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                     }
                 }
             }
-        }
+        }*/
     }
