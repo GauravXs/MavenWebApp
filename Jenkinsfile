@@ -138,10 +138,13 @@ def javaVer = ['Java8', 'Java11', 'Java17']
 
                             sh "mkdir ${JENKINS_HOME}/workspace/${JOB_NAME}/${javaVersion}"
 
-                            def selectedJDKPath = tool name: javaVersion, type: 'jdk'
-                            echo selectedJDKPath
+                            //def selectedJDKPath = tool name: javaVersion, type: 'jdk'
+                            //echo selectedJDKPath
 
-                            sh "\${selectedJDKPath}/bin/mvn clean install -f pom.xml -Dmaven.compiler.source=${versionNumber} -Dmaven.compiler.target=${versionNumber}"
+                            sh 'export JAVA_HOME=/usr/lib/jvm/java-1.\${versionNumber}.0-openjdk-amd64'
+                            echo $JAVA_HOME
+
+                            sh "mvn clean install -f pom.xml -Dmaven.compiler.source=${versionNumber} -Dmaven.compiler.target=${versionNumber}"
                             sh 'unzip -c "${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war" META-INF/MANIFEST.MF | grep Build-Jdk-Spec:'
 
                             sh "cp ${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war ${JENKINS_HOME}/workspace/${JOB_NAME}/${javaVersion}/\$(basename -s .war ${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war)_${javaVersion}.war"
