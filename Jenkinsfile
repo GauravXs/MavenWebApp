@@ -141,13 +141,19 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                             def selectedJDKPath = tool name: javaVersion, type: 'jdk'
                             echo selectedJDKPath
 
-                            sh "export JAVA_HOME=/usr/lib/jvm/java-1.${versionNumber}.0-openjdk-amd64 && echo \$JAVA_HOME && mvn clean install -f pom.xml -Dmaven.compiler.source=${versionNumber} -Dmaven.compiler.target=${versionNumber}"
-                            //sh "echo $JAVA_HOME"
+                            sh """
+                                export JAVA_HOME=/usr/lib/jvm/java-1.${versionNumber}.0-openjdk-amd64
+                                echo \$JAVA_HOME
+                                mvn clean install -f pom.xml -Dmaven.compiler.source=${versionNumber} -Dmaven.compiler.target=${versionNumber}
+                                unzip -c "${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war" META-INF/MANIFEST.MF | grep Build-Jdk-Spec:
+                                cp ${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war ${JENKINS_HOME}/workspace/${JOB_NAME}/${javaVersion}/\$(basename -s .war ${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war)_${javaVersion}.war
+                            """
+                            //sh "export JAVA_HOME=/usr/lib/jvm/java-1.${versionNumber}.0-openjdk-amd64 && echo \$JAVA_HOME && mvn clean install -f pom.xml -Dmaven.compiler.source=${versionNumber} -Dmaven.compiler.target=${versionNumber}"
 
                             //sh "mvn clean install -f pom.xml -Dmaven.compiler.source=${versionNumber} -Dmaven.compiler.target=${versionNumber}"
-                            sh 'unzip -c "${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war" META-INF/MANIFEST.MF | grep Build-Jdk-Spec:'
+                            //sh 'unzip -c "${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war" META-INF/MANIFEST.MF | grep Build-Jdk-Spec:'
 
-                            sh "cp ${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war ${JENKINS_HOME}/workspace/${JOB_NAME}/${javaVersion}/\$(basename -s .war ${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war)_${javaVersion}.war"
+                            //sh "cp ${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war ${JENKINS_HOME}/workspace/${JOB_NAME}/${javaVersion}/\$(basename -s .war ${JENKINS_HOME}/workspace/${JOB_NAME}/target/*.war)_${javaVersion}.war"
                             sleep 2
                             echo '-----------------------------------------------------------------------------------------------------------'
                         }
