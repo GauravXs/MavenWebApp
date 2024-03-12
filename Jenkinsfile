@@ -7,10 +7,10 @@ def javaVer = ['Java8', 'Java11', 'Java17']
 
         tools {
             maven 'jenkins-maven'
-            //jdk 'Java11'//, version: '11.0.22'
-            //jdk 'Java17'//, version: '17.0.10'
-            //jdk 'Java8'//, version: '8u392-ga-1'
-            //jdk 'Java21'//, version: '21.0.2'
+        //jdk 'Java11'//, version: '11.0.22'
+        //jdk 'Java17'//, version: '17.0.10'
+        //jdk 'Java8'//, version: '8u392-ga-1'
+        //jdk 'Java21'//, version: '21.0.2'
         }
 
         environment {
@@ -52,7 +52,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
             DEFAULT_REPLYTO = 'Gourav.singh@mobicule.com'
 
             useSonar = 'false'
-            useNexus = 'false'
+            useNexus = 'true'
             javaDeploy = 'Java17'
         }
 
@@ -152,7 +152,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                 }
             }
 
-            stage('Publish to Nexus') {
+            /*stage('Publish to Nexus') {
                 when {
                     expression { useSonar == 'true' }
                 }
@@ -190,6 +190,54 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                         }
                     }
                 }
+            }*/
+
+            stage('Publish to Nexus') {
+            when {
+                expression { useSonar == 'true' }
+            }
+            steps {
+                script {
+                    echo 'Uploading Artifact to Nexus Repo'
+                    for (def javaVersion in javaVer) {
+                        def versionNumber = javaVersion.replaceAll('[^0-9]', '')
+                        echo "Java version number: $versionNumber"
+                        echo "Built-in Java Version: $javaVersion"
+                        echo ''
+
+                        pom = readMavenPom file: 'pom.xml'
+                        filesByGlob = findFiles(glob: "${JENKINS_HOME}/workspace/${JOB_NAME}/${javaVersion}/*.${pom.packaging}")
+                        echo "\${filesByGlob[0].name} \${filesByGlob[0].path} \${filesByGlob[0].directory} \${filesByGlob[0].length} \${filesByGlob[0].lastModified}"
+                        if (filesByGlob) {
+                            artifactPath = filesByGlob[0].path
+                            artifactExists = fileExists artifactPath
+                            if (artifactExists) {
+                                echo "*** File: \${artifactPath}, group: \${pom.groupId}, packaging: \${pom.packaging}, version \${pom.version}"
+
+                                nexusArtifactUploader(
+                                nexusVersion: NEXUS_VERSION,
+                                protocol: NEXUS_PROTOCOL,
+                                nexusUrl: NEXUS_URL,
+                                groupId: pom.groupId,
+                                version: ARTIFACT_VERSION,
+                                repository: NEXUS_REPOSITORY,
+                                credentialsId: NEXUS_CREDENTIAL_ID,
+                                artifacts: [
+                                    [artifactId: pom.artifactId,
+                                    classifier: '',
+                                    file: artifactPath,
+                                    type: pom.packaging]
+                                ]
+                            )
+                            } else {
+                                error "*** File: \${artifactPath}, could not be found"
+                            }
+                        } else {
+                            error '*** No files found matching the specified pattern.'
+                        }
+                    }
+                }
+            }
             }
 
             /*stage('Stopping Tomcat') {
