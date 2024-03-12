@@ -220,7 +220,8 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                                 nexusUrl: NEXUS_URL,
                                 groupId: pom.groupId,
                                 //version: ARTIFACT_VERSION,
-                                version: "${pom.version}_${javaVersion}",
+                                //version: "${pom.version}_${javaVersion}",
+                                version: ARTIFACT_VERSION_${javaVersion},
                                 repository: NEXUS_REPOSITORY,
                                 credentialsId: NEXUS_CREDENTIAL_ID,
                                 artifacts: [
