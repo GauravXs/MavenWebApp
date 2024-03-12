@@ -77,7 +77,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                     if (useNexus == 'true') {
                         // Check Nexus Repo Server availability
                         sh """
-                            echo "Checking SonarQube availability..."
+                            echo "Checking Nexus Repo availability..."
                             nc -zv -w5 \${NEXUS_IP} \${NEXUS_PORT} || (echo "Nexus Repo Server is not reachable on http://\${NEXUS_IP}:\${NEXUS_PORT}, exiting." && exit 1)
                             echo "Nexus Repo Server is reachable. Proceeding with the pipeline."
                         """
