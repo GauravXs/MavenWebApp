@@ -138,8 +138,8 @@ def javaVer = ['Java8', 'Java11', 'Java17']
 
                             sh "mkdir ${JENKINS_HOME}/workspace/${JOB_NAME}/${javaVersion}"
 
-                            //def selectedJDKPath = tool name: javaVersion, type: 'jdk'
-                            //echo selectedJDKPath
+                            def selectedJDKPath = tool name: javaVersion, type: 'jdk'
+                            echo selectedJDKPath
 
                             sh "export JAVA_HOME=/usr/lib/jvm/java-1.${versionNumber}.0-openjdk-amd64 && echo \$JAVA_HOME"
                             //sh "echo $JAVA_HOME"
