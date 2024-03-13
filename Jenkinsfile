@@ -344,8 +344,8 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                         echo "${newvar}"
                         echo "${default_java_ver}"
 
-                        if(default_java_ver < 10) {
-                            default_java_ver = (default_java_ver*10)%10
+                        if(default_java_ver < 1.9) {
+                            default_java_ver = Math.round((default_java_ver*10)%10)
                             //default_java_ver = (default_java_ver - 1) * 10
                             //default_java_ver = default_java_ver.round().intValue()
                             echo "${default_java_ver}"
