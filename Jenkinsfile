@@ -336,7 +336,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
 
                         def default_java_ver = sh(script: 'cat pom.xml | grep target', returnStdout:true).trim()
                         echo "Original Java Version: ${default_java_ver}"
-                        def my_default_java_ver = default_java_ver.replaceAll('[^0-9]', '')
+                        def my_default_java_ver = default_java_ver.replaceAll('[^0-9.]', '')
                         echo "Cleaned Java Version: ${my_default_java_ver}"
 
                         def myDefaultJavaVerInt = my_default_java_ver.toInteger()
