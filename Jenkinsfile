@@ -321,16 +321,16 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                         //def default_java_ver = "${pom.build.pluginManagement.plugins.plugin.configuration.target}"
                         def default_java_ver = "${pom.build.plugins.find { it.artifactId == 'maven-compiler-plugin' }.configuration.target}"
                         echo "${default_java_ver}"
-                        sh """
+                        /*sh """
                             echo "Copying new WAR file to Tomcat..."
                             cp \${JENKINS_HOME}/workspace/\${JOB_NAME}/target/*.war \${TC_webapp_dir}
                             sleep 5
                             sudo chown -R tomcat:tomcat \${TC_webapp_dir}
-                        """
+                        """*/
                     }
                 }
             }
-
+/*
             stage('Start Tomcat') {
                 steps {
                     script {
@@ -396,7 +396,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
             }*/
         }
 
-        post {
+        /*post {
             always {
                 script {
                     if (currentBuild.currentResult == 'FAILURE') {
@@ -436,7 +436,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                             ],
                             replyTo: "${DEFAULT_REPLYTO}",
                             to: "${RECIPIENTS_NAME}"
-                    //////////////////*/
+                    //////////////////
                     } else {
                         //sh 'echo "Build result has changed to UNKNOWN"'
                         emailext subject: "Unknown Build ${BUILD_NUMBER}",
@@ -452,5 +452,5 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                     }
                 }
             }
-        }
+        }*/
     }
