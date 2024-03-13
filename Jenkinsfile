@@ -323,7 +323,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                         //def default_java_ver = "${pom.build.pluginManagement.plugins.plugin.configuration.target}"
                         //echo "${default_java_ver}"
 
-                        def mavenCompilerPlugin = pom.build.plugins.find { it.artifactId == 'maven-compiler-plugin' }
+                        def mavenCompilerPlugin = pom.build.pluginManagement.plugins.find { it.artifactId == 'maven-compiler-plugin' }
 
                         if (mavenCompilerPlugin) {
                         // Access the target configuration property
