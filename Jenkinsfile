@@ -317,6 +317,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                 steps {
                     script {
                         echo ''
+                        echo "Copying new WAR file to Tomcat..."
                         pom = readMavenPom file: 'pom.xml'
                         //def default_java_ver = "${pom.build.pluginManagement.plugins.plugin.configuration.target}"
                         //def default_java_ver = "${pom.build.plugins.find { it.artifactId == 'maven-compiler-plugin' }.configuration.target}"
@@ -334,11 +335,11 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                         }*/
 
                         def default_java_ver = sh(script: 'cat pom.xml | grep target', returnStdout:true).trim()
-                        echo "Original Java Version: ${defaultJavaVer}"
+                        echo "Original Java Version: ${default_java_ver}"
                         def my_default_java_ver = default_java_ver.replaceAll('[^0-9]', '')
-                        echo "Cleaned Java Version: ${myDefaultJavaVer}"
+                        echo "Cleaned Java Version: ${my_default_java_ver}"
 
-                        def myDefaultJavaVerInt = myDefaultJavaVer.toInteger()
+                        def myDefaultJavaVerInt = my_default_java_ver.toInteger()
 
                         if (myDefaultJavaVerInt < 10) {
                             def modifiedJavaVer = myDefaultJavaVerInt - 10
@@ -346,7 +347,6 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                         }
 
                         /*sh """
-                            cat pom.xml | grep target
                             echo "Copying new WAR file to Tomcat..."
                             cp \${JENKINS_HOME}/workspace/\${JOB_NAME}/target/*.war \${TC_webapp_dir}
                             sleep 5
