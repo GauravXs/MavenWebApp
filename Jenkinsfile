@@ -339,6 +339,13 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                         default_java_ver = default_java_ver.replaceAll('[^0-9.]', '')
                         echo "Cleaned Java Version: ${default_java_ver}"
 
+                        default_java_ver = default_java_ver.toFloat()
+
+                        if(default_java_ver < 10) {
+                            default_java_ver = (default_java_ver - 1) * 10
+                            echo "${default_java_ver}"
+                        }
+
                         /*sh """
                             echo "Copying new WAR file to Tomcat..."
                             cp \${JENKINS_HOME}/workspace/\${JOB_NAME}/target/*.war \${TC_webapp_dir}
