@@ -334,17 +334,10 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                             echo 'maven-compiler-plugin not found in the POM'
                         }*/
 
-                        def default_java_ver = sh(script: 'cat pom.xml | grep target', returnStdout:true).trim()
+                        default_java_ver = sh(script: 'cat pom.xml | grep target', returnStdout:true).trim()
                         echo "Original Java Version: ${default_java_ver}"
-                        def my_default_java_ver = default_java_ver.replaceAll('[^0-9.]', '')
-                        echo "Cleaned Java Version: ${my_default_java_ver}"
-
-                        def myDefaultJavaVerInt = my_default_java_ver.toInteger()
-
-                        if (myDefaultJavaVerInt < 10) {
-                            def modifiedJavaVer = myDefaultJavaVerInt - 10
-                            echo "Modified Java Version: ${modifiedJavaVer}"
-                        }
+                        default_java_ver = default_java_ver.replaceAll('[^0-9.]', '')
+                        echo "Cleaned Java Version: ${default_java_ver}"
 
                         /*sh """
                             echo "Copying new WAR file to Tomcat..."
