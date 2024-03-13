@@ -340,6 +340,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                         echo "Cleaned Java Version: ${default_java_ver}"
 
                         default_java_ver = default_java_ver.toFloat()
+                        echo "${default_java_ver}"
 
                         if(default_java_ver < 10) {
                             default_java_ver = (default_java_ver*10)%10
