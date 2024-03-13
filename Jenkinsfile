@@ -242,16 +242,16 @@ def javaVer = ['Java8', 'Java11', 'Java17']
             }
             }
 
-            /*stage('Stopping Tomcat') {
+            stage('Stopping Tomcat') {
                 steps {
                     script {
                         sh 'echo "Checking Tomcat Status..."'
-                        sh '''if sudo systemctl is-active --quiet tomcat; then
+                        sh """if sudo systemctl is-active --quiet tomcat; then
                                 echo "Tomcat is running. Stopping..."
                                 sudo systemctl stop tomcat
                             else
                                 echo "Tomcat is not running."
-                            fi'''
+                            fi"""
                     }
                 }
             }
@@ -300,15 +300,31 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                 }
             }
 
-            stage('Deployment') {
+            /*stage('Deployment') {
                 steps {
                     script {
-                        sh '''
+                        sh """
                             echo "Copying new WAR file to Tomcat..."
                             cp \${JENKINS_HOME}/workspace/\${JOB_NAME}/target/*.war \${TC_webapp_dir}
                             sleep 5
                             sudo chown -R tomcat:tomcat \${TC_webapp_dir}
-                        '''
+                        """
+                    }
+                }
+            }*/
+
+            stage('Deployment') {
+                steps {
+                    script {
+                        pom = readMavenPom file: 'pom.xml'
+                        def default_java_ver = "${pom.build.pluginManagement.plugins.plugin.configuration.target}"
+                        echo $default_java_ver
+                        sh """
+                            echo "Copying new WAR file to Tomcat..."
+                            cp \${JENKINS_HOME}/workspace/\${JOB_NAME}/target/*.war \${TC_webapp_dir}
+                            sleep 5
+                            sudo chown -R tomcat:tomcat \${TC_webapp_dir}
+                        """
                     }
                 }
             }
@@ -316,11 +332,11 @@ def javaVer = ['Java8', 'Java11', 'Java17']
             stage('Start Tomcat') {
                 steps {
                     script {
-                        sh '''
+                        sh """
                         echo "Starting Tomcat Server..."
                         sudo systemctl daemon-reload && sudo systemctl start tomcat.service
                         echo "Deployment completed successfully."
-                            '''
+                            """
                     }
                 }
             }
@@ -378,7 +394,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
             }*/
         }
 
-        /*post {
+        post {
             always {
                 script {
                     if (currentBuild.currentResult == 'FAILURE') {
@@ -418,7 +434,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                             ],
                             replyTo: "${DEFAULT_REPLYTO}",
                             to: "${RECIPIENTS_NAME}"
-                    //////////////////
+                    //////////////////*/
                     } else {
                         //sh 'echo "Build result has changed to UNKNOWN"'
                         emailext subject: "Unknown Build ${BUILD_NUMBER}",
@@ -434,5 +450,5 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                     }
                 }
             }
-        }*/
+        }
     }

@@ -42,7 +42,7 @@
 					<configuration>
 						<verbose>true</verbose>
 						<source>1.8</source>
-                				<target>1.8</target>
+                		<target>1.8</target>
 						<showWarnings>true</showWarnings>
 					</configuration>
 				</plugin>
