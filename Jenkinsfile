@@ -323,7 +323,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                         //def default_java_ver = "${pom.build.pluginManagement.plugins.plugin.configuration.target}"
                         //echo "${default_java_ver}"
 
-                        def mavenCompilerPlugin = pom.build.pluginManagement.plugins.find { it.artifactId == 'maven-compiler-plugin' }
+                        /*def mavenCompilerPlugin = pom.build.pluginManagement.plugins.find { it.artifactId == 'maven-compiler-plugin' }
 
                         if (mavenCompilerPlugin) {
                         // Access the target configuration property
@@ -331,9 +331,13 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                             echo "Default Java Version: ${defaultJavaVer}"
                         } else {
                             echo 'maven-compiler-plugin not found in the POM'
-                        }
+                        }*/
+
+                        def default_java_ver = sh(script: 'cat pom.xml | grep target', returnStdout:true).trim()
+                        echo "${default_java_ver}"
 
                         /*sh """
+                            cat pom.xml | grep target
                             echo "Copying new WAR file to Tomcat..."
                             cp \${JENKINS_HOME}/workspace/\${JOB_NAME}/target/*.war \${TC_webapp_dir}
                             sleep 5
