@@ -246,12 +246,12 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                 steps {
                     script {
                         sh 'echo "Checking Tomcat Status..."'
-                        sh """if sudo systemctl is-active --quiet tomcat; then
+                        sh '''if sudo systemctl is-active --quiet tomcat; then
                                 echo "Tomcat is running. Stopping..."
                                 sudo systemctl stop tomcat
                             else
                                 echo "Tomcat is not running."
-                            fi"""
+                            fi'''
                     }
                 }
             }
@@ -316,12 +316,23 @@ def javaVer = ['Java8', 'Java11', 'Java17']
             stage('Deployment') {
                 steps {
                     script {
-                        echo ""
+                        echo ''
                         pom = readMavenPom file: 'pom.xml'
                         //def default_java_ver = "${pom.build.pluginManagement.plugins.plugin.configuration.target}"
-                        def default_java_ver = "${pom.build.plugins.find { it.artifactId == 'maven-compiler-plugin' }.configuration.target}"
+                        //def default_java_ver = "${pom.build.plugins.find { it.artifactId == 'maven-compiler-plugin' }.configuration.target}"
                         //def default_java_ver = "${pom.build.pluginManagement.plugins.plugin.configuration.target}"
-                        echo "${default_java_ver}"
+                        //echo "${default_java_ver}"
+
+                        def mavenCompilerPlugin = pom.build.plugins.find { it.artifactId == 'maven-compiler-plugin' }
+
+                        if (mavenCompilerPlugin) {
+                        // Access the target configuration property
+                            def defaultJavaVer = "${mavenCompilerPlugin.configuration.target}"
+                            echo "Default Java Version: ${defaultJavaVer}"
+                        } else {
+                            echo 'maven-compiler-plugin not found in the POM'
+                        }
+
                         /*sh """
                             echo "Copying new WAR file to Tomcat..."
                             cp \${JENKINS_HOME}/workspace/\${JOB_NAME}/target/*.war \${TC_webapp_dir}
