@@ -316,9 +316,10 @@ def javaVer = ['Java8', 'Java11', 'Java17']
             stage('Deployment') {
                 steps {
                     script {
+                        echo ""
                         pom = readMavenPom file: 'pom.xml'
                         def default_java_ver = "${pom.build.pluginManagement.plugins.plugin.configuration.target}"
-                        echo $default_java_ver
+                        echo "${default_java_ver}"
                         sh """
                             echo "Copying new WAR file to Tomcat..."
                             cp \${JENKINS_HOME}/workspace/\${JOB_NAME}/target/*.war \${TC_webapp_dir}
