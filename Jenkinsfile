@@ -338,6 +338,11 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                         def my_default_java_ver = default_java_ver.replaceAll('[^0-9]', '')
                         echo "${my_default_java_ver}"
 
+                        if (my_default_java_ver < 10) {
+                            my_default_java_ver = my_default_java_ver - 10
+                            echo "${my_default_java_ver}"
+                        }
+
                         /*sh """
                             cat pom.xml | grep target
                             echo "Copying new WAR file to Tomcat..."
