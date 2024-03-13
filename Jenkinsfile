@@ -335,6 +335,8 @@ def javaVer = ['Java8', 'Java11', 'Java17']
 
                         def default_java_ver = sh(script: 'cat pom.xml | grep target', returnStdout:true).trim()
                         echo "${default_java_ver}"
+                        def default_java_ver = default_java_ver.replaceAll('[^0-9]', '')
+                        echo "${default_java_ver}"
 
                         /*sh """
                             cat pom.xml | grep target
