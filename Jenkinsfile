@@ -342,8 +342,9 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                         default_java_ver = default_java_ver.toFloat()
 
                         if(default_java_ver < 10) {
-                            default_java_ver = (default_java_ver - 1) * 10
-                            default_java_ver = default_java_ver.round().intValue()
+                            default_java_ver = (default_java_ver*10)%10
+                            //default_java_ver = (default_java_ver - 1) * 10
+                            //default_java_ver = default_java_ver.round().intValue()
                             echo "${default_java_ver}"
                         }
 
