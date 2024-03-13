@@ -334,13 +334,15 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                         }*/
 
                         def default_java_ver = sh(script: 'cat pom.xml | grep target', returnStdout:true).trim()
-                        echo "${default_java_ver}"
+                        echo "Original Java Version: ${defaultJavaVer}"
                         def my_default_java_ver = default_java_ver.replaceAll('[^0-9]', '')
-                        echo "${my_default_java_ver}"
+                        echo "Cleaned Java Version: ${myDefaultJavaVer}"
 
-                        if (my_default_java_ver < 10) {
-                            my_default_java_ver = my_default_java_ver - 10
-                            echo "${my_default_java_ver}"
+                        def myDefaultJavaVerInt = myDefaultJavaVer.toInteger()
+
+                        if (myDefaultJavaVerInt < 10) {
+                            def modifiedJavaVer = myDefaultJavaVerInt - 10
+                            echo "Modified Java Version: ${modifiedJavaVer}"
                         }
 
                         /*sh """
