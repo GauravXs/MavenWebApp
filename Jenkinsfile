@@ -51,8 +51,8 @@ def javaVer = ['Java8', 'Java11', 'Java17']
             //DEFAULT_CONTENT = 'Default Content'
             DEFAULT_REPLYTO = 'Gourav.singh@mobicule.com'
 
-            useSonar = 'false'
-            useNexus = 'false'
+            useSonar = 'true'
+            useNexus = 'true'
             javaDeploy = 'Java17'
         }
 
@@ -335,32 +335,25 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                         }*/
 
                         default_java_ver = sh(script: 'cat pom.xml | grep target', returnStdout:true).trim()
-                        echo "Original Java Version: ${default_java_ver}"
                         default_java_ver = default_java_ver.replaceAll('[^0-9.]', '')
-                        echo "Cleaned Java Version: ${default_java_ver}"
 
                         default_java_ver = default_java_ver.toFloat()
-                        def newvar = (default_java_ver * 10).toInteger()
-                        echo "${newvar}"
-                        echo "${default_java_ver}"
 
                         if(default_java_ver < 1.9) {
                             default_java_ver = Math.round((default_java_ver*10)%10)
-                            //default_java_ver = (default_java_ver - 1) * 10
-                            //default_java_ver = default_java_ver.round().intValue()
                             echo "${default_java_ver}"
                         }
 
-                        /*sh """
+                        sh """
                             echo "Copying new WAR file to Tomcat..."
-                            cp \${JENKINS_HOME}/workspace/\${JOB_NAME}/target/*.war \${TC_webapp_dir}
+                            cp \${JENKINS_HOME}/workspace/\${JOB_NAME}/Java${default_java_ver}/*.war \${TC_webapp_dir}
                             sleep 5
                             sudo chown -R tomcat:tomcat \${TC_webapp_dir}
-                        """*/
+                        """
                     }
                 }
             }
-/*
+
             stage('Start Tomcat') {
                 steps {
                     script {
@@ -426,7 +419,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
             }*/
         }
 
-        /*post {
+        post {
             always {
                 script {
                     if (currentBuild.currentResult == 'FAILURE') {
@@ -466,7 +459,7 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                             ],
                             replyTo: "${DEFAULT_REPLYTO}",
                             to: "${RECIPIENTS_NAME}"
-                    //////////////////
+                    //////////////////*/
                     } else {
                         //sh 'echo "Build result has changed to UNKNOWN"'
                         emailext subject: "Unknown Build ${BUILD_NUMBER}",
@@ -482,5 +475,5 @@ def javaVer = ['Java8', 'Java11', 'Java17']
                     }
                 }
             }
-        }*/
+        }
     }
